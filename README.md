@@ -11,5 +11,6 @@ Deploy instructions:
 
 2. Open another command and type in "curl -v http://locallost:3000/", the webpage will return server status "OK"
 
- 
+3. Open another command, type in "curl -v http://localhost:3000/", you will get following picture.
 
+![image](https://user-images.githubusercontent.com/77525269/192927808-46b08e58-2657-49bc-8966-e1b47de3ae30.png)
