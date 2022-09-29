@@ -9,7 +9,7 @@ Deploy instructions:
 
 1. Need to run code by using "nodemon app.js"
 
-2. Open another command and type in "curl -v http://locallost:3000/", the webpage will return server status "OK"
+2. Open an webpage and input "http://locallost:3000/", the webpage will return server status "OK"
 
 3. Open another command, type in "curl -v http://localhost:3000/", you will get following picture.
 
