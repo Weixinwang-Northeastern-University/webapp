@@ -9,7 +9,7 @@ Deploy instructions:
 
 1. Need to run code by using "nodemon app.js"
 
-2. Open another command and type in "curl -v http://locallost:3000/", then we will get  a following picture.
+2. Open another command and type in "curl -v http://locallost:3000/", the webpage will return server status "OK"
 
-   ![image-20220928193124966](C:\Users\TANKLI\AppData\Roaming\Typora\typora-user-images\image-20220928193124966.png)
+ 
 
