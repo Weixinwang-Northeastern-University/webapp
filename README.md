@@ -12,4 +12,3 @@ Deploy instructions:
 3. Open another command, type in "curl -v http://localhost:3000/", you will get following picture.
 4. done!
 
-![image](https://user-images.githubusercontent.com/77525269/192927808-46b08e58-2657-49bc-8966-e1b47de3ae30.png)
