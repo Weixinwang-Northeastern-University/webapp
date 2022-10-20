@@ -1,17 +1,32 @@
 const mysql = require("mysql2");
 const express = require("express");
-const app = express();
 const uuid = require("uuid");
+const app = express();
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
   password: "password",
-  database: "course6225",
 });
-
 db.connect((err) => {
   if (err) throw err;
   console.log("Connected!");
+  db.query("CREATE DATABASE course6225", function (err, result) {
+    console.log("Database created");
+    let sql = "use course6225";
+    db.query(sql, (err) => {
+      if (err) throw err;
+      let sql2 = "drop table if exists useraccount";
+      db.query(sql2, (err) => {
+        if (err) throw err;
+        let sql3 =
+          "CREATE TABLE useraccount(id varchar(255),first_name varchar(255), last_name varchar(255), password varchar(255), username varchar(255), account_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, account_updated varchar(255))";
+        db.query(sql3, (err) => {
+          if (err) throw err;
+          console.log("database and table are created!");
+        });
+      });
+    });
+  });
 });
 
 //main page
@@ -87,7 +102,6 @@ app.put("/v1/account/:id", (req, res) => {
       throw err;
     } else {
       let sql2 = `select id, first_name, last_name, username, account_created, account_updated from useraccount where id= '${req.params.id}' `;
-      console.log("1");
       let newQuery = db.query(sql2, (err, rows) => {
         if (err) {
           throw err;
