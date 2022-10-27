@@ -1,0 +1,57 @@
+name: Build AMI CI
+env:
+  ARTIFACT_NAME: a5
+  AWS_REGION: us-east-1
+on:
+  push:
+    branches: [ "main" ]
+jobs:
+  nodejs_tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.x]
+    name: Install node
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - name: Run npm
+        run: |
+          npm ci
+          npm run build --if-present
+  packer_init_validate_build:
+    needs: nodejs_tests
+    runs-on: ubuntu-latest
+    name: AWS Custom AMI
+    steps: 
+      - name: Checkout code from branch
+        uses: actions/checkout@v2
+      - name: unzip all the a5 files
+        run: |
+          zip -r a5.zip ./
+          pwd ./a5
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Validate Packer
+        uses: hashicorp/packer-github-actions@master
+        with:
+          command: validate
+          arguments: -syntax-only
+          target: ami.pkr.hcl
+      - name: Artifacts and AMI from Packer Build
+        uses: hashicorp/packer-github-actions@master
+        with:
+          command: build
+          arguments: "-color=false -on-error=abort"
+          target: ami.pkr.hcl
+        env:
+          PACKER_LOG: 1
