@@ -1,0 +1,6 @@
+[Unit]
+After=network.target
+[Service]
+ExecStart=/bin/bash -c /home/ubuntu/a5/app.sh
+[Install]
+WantedBy=default.target

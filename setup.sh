@@ -14,8 +14,12 @@ sleep 5
 echo "Installing unzip"
 sudo apt-get install unzip
 sleep 5
+wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
+sleep 5
 unzip /home/ubuntu/a5.zip -d /home/ubuntu/a5
 sudo rm -rf /home/ubuntu/a5.zip
 sleep 5
+sudo cp -f /home/ubuntu/a5/cloudwatch-config.json /opt/aws/amazon-cloudwatch-agent/bin/config.json
 cd /home/ubuntu/a5
 sudo npm install

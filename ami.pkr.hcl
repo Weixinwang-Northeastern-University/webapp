@@ -12,24 +12,24 @@ variable "ssh_username" {
 }
 variable "subnet_id" {
   type    = string
-  default = "subnet-0c37acf533415cc76"
+  default = "subnet-0fd05b3f251060337"
 }
-variable "access_key" {
-  type      = string
-  default   = "AKIA3DNQWISQRRQITLMH"
-  sensitive = true
-}
-variable "secret_key" {
-  type      = string
-  default   = "YU2dTjCZNu0FG4FJIp3p5Vnc6Rw6bbEoCX7SFo/H"
-  sensitive = true
-}
+// variable "access_key" {
+//   type      = string
+//   default   = "AKIA3DNQWISQ6JYRTH3F"
+//   sensitive = true
+// }
+// variable "secret_key" {
+//   type      = string
+//   default   = "sKrTng/fc8G76ZHa11D9MEkybAhpbvJMsaH+XZxj"
+//   sensitive = true
+// }
 source "amazon-ebs" "my-ami" {
   region          = "${var.aws_region}"
   ami_name        = "csye6225_${formatdate("YYYY_MM_DD_hh_mm_ss", timestamp())}"
   ami_description = "AMI for CSYE 6225"
-  access_key = "${var.access_key}"
-  secret_key = "${var.secret_key}"
+  // access_key = "${var.access_key}"
+  // secret_key = "${var.secret_key}"
   ami_users  = ["712747046188"]
   ami_regions = [
     "us-east-1",
@@ -61,5 +61,15 @@ build {
       "CHECKPOINT_DISABLE=1"
     ]
     script = "setup.sh"
+  }
+  provisioner "shell" {
+    inline = [
+      "echo Start myApp on system startup",
+      "sudo cp -f /home/ubuntu/a5/app.service /etc/systemd/system/app.service",
+      "sudo chmod 755 /home/ubuntu/a5/app.sh",
+      "sudo systemctl daemon-reload",
+      "sudo systemctl enable app.service",
+      "echo This provisioner runs last"
+    ]
   }
 }
