@@ -3,6 +3,8 @@ const router = express.Router();
 const validator = require("email-validator");
 const models_user = require("../models/user");
 const bcrypt = require("bcrypt");
+const StatsD = require("node-statsd"),
+  statsd_client = new StatsD();
 
 const basicAuthentication = async (req, res, next) => {
   const authorization = req.headers.authorization;
@@ -24,10 +26,14 @@ const basicAuthentication = async (req, res, next) => {
 };
 
 router.get("/healthz", (req, res) => {
+  statsd_client.increment("myapi.get.healthz");
+  console.log("GET /healthz");
   res.status(200).send();
 });
 
 router.post("/v1/account", async (req, res, next) => {
+  statsd_client.increment("myapi.post.v1.account");
+  console.log("POST /v1/account");
   try {
     const data = await models_user.findOne({
       where: { username: req.body.username },
@@ -57,6 +63,8 @@ router.post("/v1/account", async (req, res, next) => {
 });
 
 router.get("/v1/account/:id", basicAuthentication, async (req, res) => {
+  statsd_client.increment("myapi.get.v1.account");
+  console.log("GET /v1/account/" + req.params.id);
   const authenticatedUser = req.authenticatedUser;
   if (!authenticatedUser) {
     return res.status(401).send({ message: "Unauthorized" });
@@ -80,6 +88,8 @@ router.get("/v1/account/:id", basicAuthentication, async (req, res) => {
 });
 
 router.put("/v1/account/:id", basicAuthentication, async (req, res) => {
+  statsd_client.increment("myapi.put.v1.account");
+  console.log("PUT /v1/account/" + req.params.id);
   const authenticatedUser = req.authenticatedUser;
   if (!authenticatedUser) {
     return res.status(401).send({ message: "Unauthorized" });

@@ -1,0 +1,28 @@
+{
+    "agent":{
+        "metrics_collection_interval":10,
+        "run_as_user":"root"
+    },
+    "logs":{
+        "logs_collected":{
+            "files":{
+                "collect_list":[
+                    {
+                        "file_path":"/home/ubuntu/a5/app.log",
+                        "log_group_name":"csye6225",
+                        "log_stream_name":"app"
+                    }
+                ]
+            }
+        }
+    },
+    "metrics":{
+        "metrics_collected":{
+            "statsd":{
+                "metrics_aggregation_interval":300,
+                "metrics_collection_interval":15,
+                "service_address":":8125"
+            }
+        }
+    }
+}

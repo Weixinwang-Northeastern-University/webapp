@@ -8,6 +8,8 @@ const upload = multer({ dest: "uploads/" });
 const fs = require("fs");
 const models_user = require("../models/user");
 const bcrypt = require("bcrypt");
+const StatsD = require("node-statsd"),
+  statsd_client = new StatsD();
 
 const basicAuthentication = async (req, res, next) => {
   const authorization = req.headers.authorization;
@@ -56,6 +58,8 @@ router.post(
   upload.single("file"),
   async (req, res) => {
     try {
+      statsd_client.increment("myapi.post.v1.documents");
+      console.log("POST /v1/documents");
       const authenticatedUser = req.authenticatedUser;
       if (!authenticatedUser) {
         return res.status(401).send({ message: "Unauthorized" });
@@ -80,6 +84,8 @@ router.post(
 );
 
 router.get("/v1/documents", basicAuthentication, async (req, res) => {
+  statsd_client.increment("myapi.list.v1.documents");
+  console.log("POST /v1/documents");
   const authenticatedUser = req.authenticatedUser;
   if (!authenticatedUser) {
     return res.status(401).send({ message: "Unauthorized" });
@@ -91,6 +97,8 @@ router.get("/v1/documents", basicAuthentication, async (req, res) => {
 
 router.get("/v1/documents/:id", basicAuthentication, async (req, res) => {
   try {
+    statsd_client.increment("myapi.get.v1.documents");
+    console.log("GET /v1/documents/" + req.params.id);
     const authenticatedUser = req.authenticatedUser;
     if (!authenticatedUser) {
       return res.status(401).send({ message: "Unauthorized" });
@@ -113,6 +121,7 @@ router.get("/v1/documents/:id", basicAuthentication, async (req, res) => {
 
 router.delete("/v1/documents/:id", basicAuthentication, async (req, res) => {
   try {
+    statsd_client.increment("myapi.delete.v1.documents");
     const authenticatedUser = req.authenticatedUser;
     if (!authenticatedUser) {
       return res.status(401).send({ message: "Unauthorized" });

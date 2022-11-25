@@ -12,16 +12,16 @@ variable "ssh_username" {
 }
 variable "subnet_id" {
   type    = string
-  default = "subnet-0fd05b3f251060337"
+  default = "subnet-039dc1f26c1f783a8"
 }
 // variable "access_key" {
 //   type      = string
-//   default   = "AKIA3DNQWISQ6JYRTH3F"
+//   default   = "AKIA3DNQWISQSHBT4IPQ"
 //   sensitive = true
 // }
 // variable "secret_key" {
 //   type      = string
-//   default   = "sKrTng/fc8G76ZHa11D9MEkybAhpbvJMsaH+XZxj"
+//   default   = "HpfilU0CIWAoFGv0CL7wIqylH+Nqajc9oW4gWjy9"
 //   sensitive = true
 // }
 source "amazon-ebs" "my-ami" {
