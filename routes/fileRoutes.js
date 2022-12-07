@@ -1,34 +1,15 @@
 require("dotenv").config();
 const express = require("express");
+const basicAuthentication = require("../middleware/basicAuthentication");
 const router = express.Router();
-const models_document = require("../models/document");
+const models = require("../models/document");
 const AWS = require("aws-sdk");
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
 const fs = require("fs");
-const models_user = require("../models/user");
-const bcrypt = require("bcrypt");
-const StatsD = require("node-statsd"),
-  statsd_client = new StatsD();
-
-const basicAuthentication = async (req, res, next) => {
-  const authorization = req.headers.authorization;
-  if (authorization) {
-    const encoded = authorization.substring(6);
-    const decoded = Buffer.from(encoded, "base64").toString("ascii");
-    const [username, password] = decoded.split(":");
-    const authenticatedUser = await models_user.findOne({
-      where: { username: username },
-    });
-    if (authenticatedUser) {
-      const match = await bcrypt.compare(password, authenticatedUser.password);
-      if (match) {
-        req.authenticatedUser = authenticatedUser;
-      }
-    }
-  }
-  next();
-};
+const logger = require("../config/winston");
+const SDC = require("statsd-client");
+const sdc = new SDC({ host: "localhost", port: 8125 });
 
 const s3 = new AWS.S3({
   region: process.env.AWS_REGION,
@@ -58,20 +39,22 @@ router.post(
   upload.single("file"),
   async (req, res) => {
     try {
-      statsd_client.increment("myapi.post.v1.documents");
-      console.log("POST /v1/documents");
+      sdc.increment("Test post.v1.documents");
+      logger.info("POST /v1/documents");
       const authenticatedUser = req.authenticatedUser;
       if (!authenticatedUser) {
         return res.status(401).send({ message: "Unauthorized" });
       }
-
+      if (authenticatedUser.isVerified == false) {
+        res.status(400).send({ message: "Unverified user" });
+      }
       if (req.body == null) {
         res.status(400).send({ message: "Bad request!" });
       }
 
       const file = req.file;
       const result = await uploadFile(file);
-      const document = await models_document.create({
+      const document = await models.create({
         user_id: authenticatedUser.id,
         name: result.Key,
         s3_bucket_path: result.Location,
@@ -84,29 +67,33 @@ router.post(
 );
 
 router.get("/v1/documents", basicAuthentication, async (req, res) => {
-  statsd_client.increment("myapi.list.v1.documents");
-  console.log("POST /v1/documents");
+  sdc.increment("Test get.v1.documents");
+  logger.info("GET /v1/documents");
   const authenticatedUser = req.authenticatedUser;
   if (!authenticatedUser) {
     return res.status(401).send({ message: "Unauthorized" });
   }
+  if (authenticatedUser.isVerified == false) {
+    res.status(400).send({ message: "Unverified user" });
+  }
   const id = authenticatedUser.id;
-  const posts = await models_document.findAll({ where: { user_id: id } });
+  const posts = await models.findAll({ where: { user_id: id } });
   res.status(200).send({ posts });
 });
 
 router.get("/v1/documents/:id", basicAuthentication, async (req, res) => {
   try {
-    statsd_client.increment("myapi.get.v1.documents");
-    console.log("GET /v1/documents/" + req.params.id);
+    sdc.increment("TEST get.v1.documents.id");
+    logger.info("GET /v1/documents/:id");
     const authenticatedUser = req.authenticatedUser;
     if (!authenticatedUser) {
       return res.status(401).send({ message: "Unauthorized" });
     }
+    if (authenticatedUser.isVerified == false) {
+      res.status(400).send({ message: "Unverified user" });
+    }
     const doc_id = req.params.id;
-    const document = await models_document.findOne({
-      where: { doc_id: doc_id },
-    });
+    const document = await models.findOne({ where: { doc_id: doc_id } });
     if (!document) {
       res.status(400).send({ message: "Bad request" });
     }
@@ -121,22 +108,24 @@ router.get("/v1/documents/:id", basicAuthentication, async (req, res) => {
 
 router.delete("/v1/documents/:id", basicAuthentication, async (req, res) => {
   try {
-    statsd_client.increment("myapi.delete.v1.documents");
+    sdc.increment("Test delete.v1.documents.id");
+    logger.info("DELETE /v1/documents/:id");
     const authenticatedUser = req.authenticatedUser;
     if (!authenticatedUser) {
       return res.status(401).send({ message: "Unauthorized" });
     }
+    if (authenticatedUser.isVerified == false) {
+      res.status(400).send({ message: "Unverified user" });
+    }
     const doc_id = req.params.id;
-    const document = await models_document.findOne({
-      where: { doc_id: doc_id },
-    });
+    const document = await models.findOne({ where: { doc_id: doc_id } });
     console.log(document);
     if (!document) {
       res.status(404).send({ message: "Not Found!" });
     }
     filename = document.name;
     await deleteFile(filename);
-    await models_document.destroy({ where: { doc_id: doc_id } });
+    await models.destroy({ where: { doc_id: doc_id } });
     res.status(204).send({ message: "File has successfully been deleted!" });
   } catch (err) {
     console.log(err);

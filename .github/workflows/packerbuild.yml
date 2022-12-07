@@ -1,0 +1,93 @@
+name: Step 2:Build AMI
+env:
+  ARTIFACT_NAME: webapp
+  AWS_REGION: us-east-1
+  TemplateName: asg_launch_config
+on:
+  push:
+    branches:
+      - main
+jobs:
+  nodejs_tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.x]
+    name: Install node application and run unit tests
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - name: Run npm
+        run: |
+          npm ci
+          npm run build --if-present     
+
+  packer_init_validate_build:
+    needs: nodejs_tests
+    runs-on: ubuntu-latest
+    name: Build AWS Custom AMI with Node Application artifacts
+    steps: 
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: zip webapp 
+        run: |
+          zip -r webapp.zip ./
+          pwd ./webapp
+      - name: AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Validate Packer
+        uses: hashicorp/packer-github-actions@master
+        with:
+          command: validate
+          arguments: -syntax-only
+          target: ami.pkr.hcl
+          
+      - name: create AMI
+        uses: hashicorp/packer-github-actions@master
+        with:
+          command: build
+          arguments: "-color=false -on-error=abort"
+          target: ami.pkr.hcl
+        env:
+          PACKER_LOG: 1
+
+      - name: Get Latest AMI ID
+        run: |
+          AMI_ID=$(jq -r '.builds[-1].artifact_id' manifest.json | cut -d ":" -f2)
+          echo "AMI_ID=$AMI_ID" >> $GITHUB_ENV
+
+      - name: Configure AWS Demo Account Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_DEMO_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_DEMO_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Create a new Launch Template with the AWS CLI
+        run: |
+          aws ec2 create-launch-template-version \
+          --launch-template-name ${{ env.LaunchTemplateName }} \
+          --version-description NewWebVersion \
+          --source-version 1 \
+          --launch-template-data "ImageId=${{ env.AMI_ID }}"
+
+      - name: Update the Autoscaling Group to use the latest Launch Template
+        run: |
+          aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${{ secrets.AutoScaling_Group_Name }} \
+          --launch-template LaunchTemplateName=${{ env.LaunchTemplateName }},Version='$Latest'
+
+    # 9. Update the Autoscaling Group to use the latest Launch Template
+      - name: Update the Autoscaling Group to use the latest Launch Template
+        run: |
+          aws autoscaling start-instance-refresh --auto-scaling-group-name ${{ secrets.AutoScaling_Group_Name }}
+          
