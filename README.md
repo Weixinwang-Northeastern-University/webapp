@@ -19,3 +19,4 @@ Assignment 5 Demo:
 
 Assignment 7 Demo:
 - Demonstrate the setup.sh script and build the AMI -> paste the AMI id to cloudformation -> create the cloudformation in demo account -> check the cloudwatch dashboard 
+Assignment 9
