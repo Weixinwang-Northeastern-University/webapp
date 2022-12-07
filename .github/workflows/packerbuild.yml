@@ -1,7 +1,6 @@
 name: Step 2:Build AMI
 env:
   ARTIFACT_NAME: webapp
-  AWS_REGION: us-east-1
   TemplateName: asg_launch_config
 on:
   push:
@@ -41,9 +40,9 @@ jobs:
       - name: AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: AKIA3DNQWISQ3NNEXHBQ
+          aws-secret-access-key: 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
+          aws-region: us-east-1
 
       - name: Validate Packer
         uses: hashicorp/packer-github-actions@master
@@ -69,9 +68,9 @@ jobs:
       - name: Configure AWS Demo Account Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_DEMO_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_DEMO_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: AKIA2L4YI2UWDPBIMCMF
+          aws-secret-access-key: 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
+          aws-region: us-east-1
 
       - name: Create a new Launch Template with the AWS CLI
         run: |
@@ -86,7 +85,6 @@ jobs:
           aws autoscaling update-auto-scaling-group --auto-scaling-group-name ${{ secrets.AutoScaling_Group_Name }} \
           --launch-template LaunchTemplateName=${{ env.LaunchTemplateName }},Version='$Latest'
 
-    # 9. Update the Autoscaling Group to use the latest Launch Template
       - name: Update the Autoscaling Group to use the latest Launch Template
         run: |
           aws autoscaling start-instance-refresh --auto-scaling-group-name ${{ secrets.AutoScaling_Group_Name }}
