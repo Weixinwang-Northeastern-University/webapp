@@ -1,6 +1,5 @@
 const Sequelize = require("sequelize");
-const sequelize = require("../config/database");
-
+const sequelize = require("../config/db.sequelize");
 const user = sequelize.define("User", {
   id: {
     type: Sequelize.UUID,
@@ -22,6 +21,15 @@ const user = sequelize.define("User", {
     type: Sequelize.STRING,
     unique: true,
   },
+  createdAt: {
+    type: Sequelize.DATE,
+  },
+  updatedAt: {
+    type: Sequelize.DATE,
+  },
+  isVerified: {
+    type: Sequelize.BOOLEAN,
+    defaultValue: false,
+  },
 });
-
 module.exports = user;

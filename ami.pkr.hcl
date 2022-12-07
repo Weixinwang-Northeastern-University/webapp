@@ -14,23 +14,24 @@ variable "subnet_id" {
   type    = string
   default = "subnet-039dc1f26c1f783a8"
 }
-// variable "access_key" {
-//   type      = string
-//   default   = "AKIA3DNQWISQSHBT4IPQ"
-//   sensitive = true
-// }
-// variable "secret_key" {
-//   type      = string
-//   default   = "HpfilU0CIWAoFGv0CL7wIqylH+Nqajc9oW4gWjy9"
-//   sensitive = true
-// }
+variable "access_key" {
+  type      = string
+  default   = "AKIA3DNQWISQ3NNEXHBQ"
+  sensitive = true
+}
+variable "secret_key" {
+  type      = string
+  default   = "rxuZVQATUhILfwnQeJwkNOx/oCgcaZYTZIMR/nxW"
+  sensitive = true
+}
 source "amazon-ebs" "my-ami" {
   region          = "${var.aws_region}"
   ami_name        = "csye6225_${formatdate("YYYY_MM_DD_hh_mm_ss", timestamp())}"
   ami_description = "AMI for CSYE 6225"
-  // access_key = "${var.access_key}"
-  // secret_key = "${var.secret_key}"
+
   ami_users  = ["712747046188"]
+  access_key = "${var.access_key}"
+  secret_key = "${var.secret_key}"
   ami_regions = [
     "us-east-1",
   ]
@@ -42,6 +43,7 @@ source "amazon-ebs" "my-ami" {
   source_ami    = "${var.source_ami}"
   ssh_username  = "${var.ssh_username}"
   subnet_id     = "${var.subnet_id}"
+
   launch_block_device_mappings {
     delete_on_termination = true
     device_name           = "/dev/sda1"
@@ -49,27 +51,26 @@ source "amazon-ebs" "my-ami" {
     volume_type           = "gp2"
   }
 }
+
 build {
   sources = ["source.amazon-ebs.my-ami"]
   provisioner "file" {
-    source      = "a5.zip"
-    destination = "~/a5.zip"
+    source      = "webapp.zip"
+    destination = "~/webapp.zip"
   }
   provisioner "shell" {
     environment_vars = [
       "DEBIAN_FRONTEND=noninteractive",
       "CHECKPOINT_DISABLE=1"
     ]
+
     script = "setup.sh"
   }
-  provisioner "shell" {
-    inline = [
-      "echo Start myApp on system startup",
-      "sudo cp -f /home/ubuntu/a5/app.service /etc/systemd/system/app.service",
-      "sudo chmod 755 /home/ubuntu/a5/app.sh",
-      "sudo systemctl daemon-reload",
-      "sudo systemctl enable app.service",
-      "echo This provisioner runs last"
-    ]
+  post-processor "manifest" {
+    output     = "manifest.json"
+    strip_path = true
+    custom_data = {
+      my_custom_data = "example"
+    }
   }
 }

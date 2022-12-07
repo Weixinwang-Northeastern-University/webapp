@@ -1,8 +1,8 @@
 const express = require("express");
 const app = express();
-const db = require("./config/database");
-const userRoutes = require("./routes/user");
-const fileRoutes = require("./routes/file");
+const db = require("./config/db.sequelize");
+const userRoutes = require("./routes/userRoute");
+const fileRoutes = require("./routes/fileRoutes");
 const bodyParser = require("body-parser");
 
 app.use(bodyParser.json());
