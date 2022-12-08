@@ -40,8 +40,8 @@ jobs:
       - name: AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: AKIA3DNQWISQ3NNEXHBQ
-          aws-secret-access-key: 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
+          aws-access-key-id: ${{ secrets.AWS_DEV_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_DEV_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
       - name: Validate Packer
@@ -68,8 +68,8 @@ jobs:
       - name: Configure AWS Demo Account Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: AKIA2L4YI2UWDPBIMCMF
-          aws-secret-access-key: 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
+          aws-access-key-id: ${{ secrets.AWS_DEMO_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_DEMO_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
       - name: Create a new Launch Template with the AWS CLI
